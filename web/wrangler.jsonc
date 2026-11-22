@@ -1,0 +1,10 @@
+{
+  "name": "tiny-voca-lg-demo",
+  "compatibility_date": "2026-10-06",
+  "assets": {
+    "directory": "public",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+  // To serve it on your own domain, add: "routes": [{ "pattern": "your.domain", "custom_domain": true }]
+}
