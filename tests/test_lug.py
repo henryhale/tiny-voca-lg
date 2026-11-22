@@ -18,7 +18,7 @@ LUG_JS = Path(__file__).resolve().parents[1] / "web" / "public" / "lug.js"
 SENTENCES = [
     "Oli otya? Nkwagala nnyo, ssebo.",
     "Ng'ombe za kitaawe n'abaana bajja.",
-    "Ennaku zino akawunga ye baana baliwo mu Uganda yonna, buli Maka okasangamu.",
+    "Abaana bagenda ku ssomero buli lunaku, naye leero baasigadde waka.",
     "Obummonde obuzungu buwooma nnyo naye bulumya enjala, olya n'obeera ng’atalidde.",
     "Kkyalo kino kirimu abantu bangi; ggwe ani?",
     "Webale nnyo okujja!!! Weeraba...",
