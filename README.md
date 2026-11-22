@@ -164,8 +164,11 @@ cd web/public
 python3 -m http.server 8000
 ```
 
-Then open http://localhost:8000. To deploy it on Cloudflare, run
-`npx wrangler deploy` in `web/`. To serve the model files yourself, run
+Then open http://localhost:8000.
+
+A push to `master` that changes `web/public/` deploys the demo to GitHub Pages
+(`.github/workflows/pages.yml`), at https://henryhale.github.io/tiny-voca-lg/.
+To deploy it on Cloudflare instead, run `npx wrangler deploy` in `web/`. To serve the model files yourself, run
 `bash web/fetch_assets.sh` and set `BASE = "assets/"` in
 `web/public/worker.js`.
 
