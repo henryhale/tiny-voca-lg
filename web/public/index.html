@@ -43,9 +43,8 @@
   #speak { margin-left: auto; min-width: 6em; font: 600 16px var(--ui); color: var(--accent-ink); background: var(--accent); border: 0;
            border-radius: 10px; padding: 11px 22px; cursor: pointer; }
   #speak:disabled { opacity: 0.45; cursor: default; }
-  #load { margin-top: 10px; font: 600 15px var(--ui); color: var(--ink); background: var(--panel); border: 1px solid var(--line);
-          border-radius: 10px; padding: 9px 18px; cursor: pointer; }
-  #load:hover { border-color: var(--muted); }
+  #load { margin-top: 10px; font: 600 16px var(--ui); color: var(--accent-ink); background: var(--accent); border: 0;
+          border-radius: 10px; padding: 11px 22px; cursor: pointer; }
   #load[hidden] { display: none; }
   #speak:focus-visible, #load:focus-visible, textarea:focus-visible, .examples button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .status { margin-top: 16px; font-size: 14px; color: var(--muted); min-height: 22px; }
@@ -92,8 +91,8 @@
     </div>
   </section>
 
-  <div class="status" id="status" role="status">Checking for a saved model…</div>
-  <button id="load" hidden>Load model (~21 MB) + runtime (~30 MB)</button>
+  <div class="status" id="status" role="status">The model is not loaded yet.</div>
+  <button id="load">Load model (~21 MB) + runtime (~30 MB)</button>
   <div class="bar" id="bar" hidden><i></i></div>
 
   <section class="result" id="result" hidden>
@@ -112,8 +111,7 @@
     <a href="https://huggingface.co/henryhale/tiny-voca-lg">Weights</a>
     <a href="https://huggingface.co/datasets/CraneAILabs/waxal-lug-clean">Dataset</a>
     <a href="https://github.com/n4ze3m/tiny-voca">tiny-voca (English)</a>
-    <p>The model (about 21 MB) is downloaded only when you ask for it, and your browser keeps it for the next
-       visit. Pronunciation comes from Luganda spelling rules; tone is
+    <p>Nothing is downloaded until you press Load. Pronunciation comes from Luganda spelling rules; tone is
        not written and not modelled. Digits are not read: write numbers out in words.</p>
   </footer>
 </main>
@@ -187,10 +185,6 @@ worker.onmessage = ({ data }) => {
     $("phonemes").textContent = phonemes.join("\n");
     $("result").hidden = false;
     setStatus("Done.");
-  } else if (data.type === "cached") {
-    // A model kept from an earlier visit loads at once: nothing is downloaded. Otherwise the reader decides.
-    if (data.value) loadModel();
-    else { $("load").hidden = false; setStatus("The model is not loaded yet."); }
   } else if (data.type === "error") {
     busy = false;
     if (live) live.end();
@@ -235,7 +229,6 @@ $("text").addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter" && !$("speak").disabled) $("speak").click();
 });
 
-worker.postMessage({ type: "check" });
 </script>
 </body>
 </html>

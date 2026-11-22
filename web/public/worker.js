@@ -1,9 +1,8 @@
 // Runs the phonemizer (lug.js, the Luganda spelling rules) and the model (ONNX
-// Runtime Web) off the main thread. Messages in: {type: "check"}, {type: "load"} and
-// {type: "speak", id, text, voice, speed}. Messages out: cached (whether the model is
-// already in the browser's cache), status, ready, sentence (with its audio, as soon
-// as it is made), done (with the whole clip), error (plain: true when the message is
-// meant for the reader as it is). Nothing is downloaded before "load".
+// Runtime Web) off the main thread. Messages in: {type: "load"} and {type: "speak",
+// id, text, voice, speed}. Messages out: status, ready, sentence (with its audio, as
+// soon as it is made), done (with the whole clip), error (plain: true when the message
+// is meant for the reader as it is). Nothing is downloaded before "load".
 
 const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
 // The model and its metadata, straight from the Hugging Face repository. To serve
@@ -31,14 +30,6 @@ async function download(url, label) {
   const bytes = await fetchBytes(key, label);
   if (store) store.put(key, new Response(bytes)).catch(() => {});
   return bytes;
-}
-
-// Whether an earlier visit left the model in the cache, so loading it downloads nothing.
-async function modelIsCached() {
-  try {
-    const store = await caches.open("tiny-voca-lg-" + VERSION);
-    return Boolean(await store.match(`${BASE}model.onnx?v=${VERSION}`));
-  } catch (error) { return false; }
 }
 
 async function fetchBytes(url, label) {
@@ -180,9 +171,7 @@ async function speak({ id, text, voice, speed }) {
 
 onmessage = async ({ data }) => {
   try {
-    if (data.type === "check") {
-      postMessage({ type: "cached", value: await modelIsCached() });
-    } else if (data.type === "load") {
+    if (data.type === "load") {
       await loadModel();
       postMessage({ type: "ready", voices: config.voices, sampleRate: config.sample_rate });
     } else if (data.type === "speak") {
