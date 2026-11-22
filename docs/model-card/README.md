@@ -130,24 +130,21 @@ the browser needs no Python.
 
 | | |
 |---|---|
-| Data | 3.2 hours after cutting and alignment: 95 min F2, 96 min M2; 1,040 training and 39 validation chunks of 4–18 s |
-| Starting point | The English tiny-voca weights (`--init-weights`) |
-| Steps | 4,000, batch 9,000 frames per GPU, learning rate 2e-4 |
-| Hardware | Two Kaggle T4 GPUs, data-parallel, about 1 hour |
+| Data | 3.2 hours: 95 min F2 (speaker 5), 96 min M2 (speaker 1), in 4–18 s chunks |
+| Starting point | English tiny-voca weights |
+| Steps | 4,000 (learning rate 2e-4) |
+| Hardware | Two Kaggle T4 GPUs, about 1 hour |
 
-The long Waxal recordings were cut at pauses between words. Phoneme durations
-come from forced alignment with `facebook/wav2vec2-lv-60-espeak-cv-ft`, which
-is used only to label the training data. Luganda spelling is mapped onto the
-English model's phoneme inventory, so no new symbols were added.
+To train it yourself, see the [GitHub repository](https://github.com/henryhale/tiny-voca-lg#training).
 
 ## Limitations
 
-- Pronunciation comes from spelling rules. Tone is not written in Luganda and
-  is not modelled.
-- Digits are not read: write numbers out in words.
-- English loanwords and names are read with Luganda rules.
-- Trained on about 3 hours from two speakers. No formal evaluation or
-  listening test has been run.
+- Luganda in Latin letters only, two fixed voices, no voice cloning.
+- Tone is not modelled, and digits are not read: write numbers out in words.
+- Loanwords and names are read with Luganda spelling rules.
+- Trained on about 3 hours from two speakers, so rhythm and sound quality are
+  not always right.
+- No formal evaluation or listening test has been run.
 
 ## License and attribution
 
