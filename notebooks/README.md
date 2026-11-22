@@ -16,11 +16,14 @@ the settings the released weights were trained with.
 
 ### Settings
 
-Cell 1 holds everything you may want to change:
+Cell 1 holds everything you may want to change.
+
+<details>
+<summary>All settings</summary>
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `REPO_REF` | `main` | Branch or tag of this repository to train with; pin a tag to repeat a run exactly |
+| `REPO_REF` | `master` | Branch or tag of this repository to train with; pin a tag to repeat a run exactly |
 | `FEMALE`, `MALE` | `5`, `1` | Waxal `speaker_id`s for the F2 and M2 voices |
 | `MINUTES_PER_VOICE` | 100 | Training audio kept per voice |
 | `STEPS` | 4000 | Training steps (one batch per GPU each) |
@@ -29,11 +32,16 @@ Cell 1 holds everything you may want to change:
 | `MAX_TRAIN_SECONDS` | 3 hours | Training time per session |
 | `RESUME_FROM` | `None` | A previous version's output, to continue a stopped run |
 
+</details>
+
 Changing the speakers or the minutes after the data steps have run is refused:
 delete `stages`, `data`, `features`, `annotations` and `run` in
 `/kaggle/working` to start over.
 
 ### Steps
+
+<details>
+<summary>What each cell does</summary>
 
 | Cell | Step | Code |
 |---|---|---|
@@ -45,6 +53,8 @@ delete `stages`, `data`, `features`, `annotations` and `run` in
 | 8 | Training, one model on both GPUs | `tiny_voca.train` |
 | 9 | Listen to the last checkpoints | `scripts/export_checkpoint.py` |
 | 10 | Package the chosen checkpoint | `tiny_voca.export` |
+
+</details>
 
 ### Stopping and resuming
 

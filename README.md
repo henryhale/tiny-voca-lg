@@ -52,7 +52,10 @@ python -m tiny_voca.infer \
 ```
 
 The command finds the front end the checkpoint was trained with (`lug`) by
-itself. In your own Python code, select it first:
+itself. In your own Python code, select it first.
+
+<details>
+<summary>From Python</summary>
 
 ```python
 from tiny_voca.text import set_frontend
@@ -65,6 +68,8 @@ model = load_model("weights/tiny-voca-lug.pt")
 wave, spoken = speak_text(model, "Webale nnyo okujja. Weeraba!", "M2")
 sf.write("webale.wav", wave.numpy(), 24000)
 ```
+
+</details>
 
 | Option | Default | Meaning |
 |---|---|---|
@@ -112,7 +117,10 @@ python -m tiny_voca.export --checkpoint weights/tiny-voca-lug.pt --output tiny-v
 ```
 
 A ready file is in the weights repository as `model.onnx`, with its metadata
-in `model.json`. The graph takes phoneme ids and returns the waveform:
+in `model.json`. The graph takes phoneme ids and returns the waveform.
+
+<details>
+<summary>Run the ONNX model from Python</summary>
 
 ```python
 import numpy as np
@@ -134,6 +142,8 @@ audio, durations = session.run(None, {
 audio = audio[0] * min(1.0, 0.99 / np.abs(audio).max())
 sf.write("out.wav", audio, 24000)
 ```
+
+</details>
 
 The model reads one utterance per call, up to 512 tokens and 32 seconds.
 Split longer text into sentences; `tiny_voca.infer.speak_text` does this.
@@ -164,6 +174,9 @@ Then open http://localhost:8000. To deploy it on Cloudflare, run
 To train on Kaggle with two free T4 GPUs, see [notebooks/](notebooks/).
 
 The steps from the command line, with a GPU:
+
+<details>
+<summary>Training commands, from the dataset to ONNX</summary>
 
 ```bash
 pip install -e ".[data,prepare,annotate]"
@@ -202,6 +215,8 @@ torchrun --standalone --nproc_per_node 2 -m tiny_voca.train \
 python scripts/export_checkpoint.py --checkpoint runs/lug/step-00004000.pt --output tiny-voca-lug.pt
 python -m tiny_voca.export --checkpoint tiny-voca-lug.pt --output model.onnx
 ```
+
+</details>
 
 Every step can be restarted: `split_clips.py` skips finished clips, `prepare`
 and `annotate` take `--resume`, and training continues with
@@ -250,7 +265,10 @@ Apache-2.0 for the code, as upstream. The training data is CC BY 4.0.
 
 ## Citation
 
-Please cite upstream tiny-voca:
+Please cite upstream tiny-voca.
+
+<details>
+<summary>BibTeX</summary>
 
 ```bibtex
 @software{nazeem2026tinyvoca,
@@ -260,3 +278,5 @@ Please cite upstream tiny-voca:
   url    = {https://huggingface.co/n4ze3m/tiny-voca}
 }
 ```
+
+</details>

@@ -29,7 +29,7 @@ M2 (male). It is fine-tuned from the English
 (CC BY 4.0, from WaxalNLP): speaker 5 as F2 and speaker 1 as M2.
 
 - Code, Luganda front end and browser demo: https://github.com/henryhale/tiny-voca-lg
-- Training notebooks: https://github.com/henryhale/tiny-voca-lg/tree/main/notebooks
+- Training notebooks: https://github.com/henryhale/tiny-voca-lg/tree/master/notebooks
 
 | | |
 |---|---|
@@ -68,6 +68,9 @@ in its own environment. The command picks the Luganda front end from the
 checkpoint by itself. In Python, call `tiny_voca.text.set_frontend("lug")` (or
 set `TINY_VOCA_FRONTEND=lug`) before you load the model.
 
+<details>
+<summary>Command options</summary>
+
 | Option | Default | Meaning |
 |---|---|---|
 | `--text-file` | | Read the text from a file instead of `--text`. |
@@ -76,11 +79,16 @@ set `TINY_VOCA_FRONTEND=lug`) before you load the model.
 | `--pitch-shift` | 0 | Added to log F0. 0.058 is about one semitone. |
 | `--pitch-range` | 1.0 | Scales pitch movement around the utterance mean. |
 
+</details>
+
 ### ONNX
 
 The graph takes phoneme ids and stress values and returns the waveform. Text
 is converted to ids outside the graph; the ids are positions in `symbols` in
 `model.json`.
+
+<details>
+<summary>Run the ONNX model from Python</summary>
 
 ```python
 import numpy as np
@@ -105,6 +113,8 @@ audio = audio[0]
 audio = audio * min(1.0, 0.99 / np.abs(audio).max())    # the model can peak above 1.0
 sf.write("out.wav", audio, 24000)
 ```
+
+</details>
 
 The model reads one utterance per call, up to 512 tokens and 32 seconds. Split
 longer text into sentences; `tiny_voca.infer.speak_text` does this in Python.
