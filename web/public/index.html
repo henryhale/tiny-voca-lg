@@ -43,7 +43,11 @@
   #speak { margin-left: auto; min-width: 6em; font: 600 16px var(--ui); color: var(--accent-ink); background: var(--accent); border: 0;
            border-radius: 10px; padding: 11px 22px; cursor: pointer; }
   #speak:disabled { opacity: 0.45; cursor: default; }
-  #speak:focus-visible, textarea:focus-visible, .examples button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #load { margin-top: 10px; font: 600 15px var(--ui); color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; padding: 9px 18px; cursor: pointer; }
+  #load:hover { border-color: var(--muted); }
+  #load[hidden] { display: none; }
+  #speak:focus-visible, #load:focus-visible, textarea:focus-visible, .examples button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .status { margin-top: 16px; font-size: 14px; color: var(--muted); min-height: 22px; }
   .bar { height: 3px; background: var(--line); border-radius: 2px; margin-top: 8px; overflow: hidden; }
   .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.15s; }
@@ -57,16 +61,12 @@
   dd { margin: 2px 0 0; font: 15px var(--mono); }
   details { margin-top: 16px; font-size: 14px; color: var(--muted); }
   details pre { white-space: pre-wrap; word-break: break-word; font: 13px/1.6 var(--mono); color: var(--ink); margin: 8px 0 0; }
-  .facts { margin-top: 44px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--line); }
-  .facts div { padding: 16px 12px 16px 0; border-bottom: 1px solid var(--line); }
-  .facts b { display: block; font: 600 22px var(--sans); }
-  .facts span { font-size: 13px; color: var(--muted); }
-  footer { margin-top: 36px; font-size: 14px; color: var(--muted); }
+  footer { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 16px; font-size: 14px; color: var(--muted); }
   footer a { color: var(--ink); text-underline-offset: 3px; margin-right: 16px; }
   footer p { margin: 14px 0 0; max-width: 62ch; }
   @media (max-width: 560px) {
     header h1 { font-size: 34px; } main { padding-top: 36px; }
-    dl { grid-template-columns: repeat(2, 1fr); } .facts { grid-template-columns: repeat(2, 1fr); }
+    dl { grid-template-columns: repeat(2, 1fr); }
     #speak { margin-left: 0; width: 100%; }
   }
 </style>
@@ -92,8 +92,9 @@
     </div>
   </section>
 
-  <div class="status" id="status" role="status">Loading…</div>
-  <div class="bar" id="bar"><i></i></div>
+  <div class="status" id="status" role="status">Checking for a saved model…</div>
+  <button id="load" hidden>Load model (~21 MB) + runtime (~30 MB)</button>
+  <div class="bar" id="bar" hidden><i></i></div>
 
   <section class="result" id="result" hidden>
     <audio id="audio" controls></audio>
@@ -106,21 +107,13 @@
     <details><summary>Phonemes</summary><pre id="phonemes"></pre></details>
   </section>
 
-  <section class="facts">
-    <div><b>4,537,291</b><span>parameters, waveform generator included</span></div>
-    <div><b>21 MB</b><span>model file (ONNX, float32)</span></div>
-    <div><b>24 kHz</b><span>mono output</span></div>
-    <div><b>2 voices</b><span>F2 and M2, Luganda</span></div>
-    <div><b>3.2 hours</b><span>of recorded Luganda speech (WaxalNLP)</span></div>
-    <div><b>1 hour</b><span>of fine-tuning on two T4 GPUs</span></div>
-  </section>
-
   <footer>
     <a href="https://github.com/henryhale/tiny-voca-lg">Code</a>
     <a href="https://huggingface.co/henryhale/tiny-voca-lg">Weights</a>
     <a href="https://huggingface.co/datasets/CraneAILabs/waxal-lug-clean">Dataset</a>
     <a href="https://github.com/n4ze3m/tiny-voca">tiny-voca (English)</a>
-    <p>The first visit downloads about 21 MB: the model. Pronunciation comes from Luganda spelling rules; tone is
+    <p>The model (about 21 MB) is downloaded only when you ask for it, and your browser keeps it for the next
+       visit. Pronunciation comes from Luganda spelling rules; tone is
        not written and not modelled. Digits are not read: write numbers out in words.</p>
   </footer>
 </main>
@@ -194,14 +187,26 @@ worker.onmessage = ({ data }) => {
     $("phonemes").textContent = phonemes.join("\n");
     $("result").hidden = false;
     setStatus("Done.");
+  } else if (data.type === "cached") {
+    // A model kept from an earlier visit loads at once: nothing is downloaded. Otherwise the reader decides.
+    if (data.value) loadModel();
+    else { $("load").hidden = false; setStatus("The model is not loaded yet."); }
   } else if (data.type === "error") {
     busy = false;
     if (live) live.end();
+    if (!ready) $("load").hidden = false;                  // loading failed: let the reader try again
     update();
     setStatus(data.plain ? data.message : "Something went wrong: " + data.message);
   }
 };
 worker.onerror = (event) => setStatus("Could not start: " + event.message);
+
+function loadModel() {
+  $("load").hidden = true;
+  setStatus("Loading the model…", 0);
+  worker.postMessage({ type: "load" });
+}
+$("load").onclick = loadModel;
 
 // Sound has to start inside a click, so the player is made here and not when the first sentence arrives.
 function listen() {
@@ -230,8 +235,7 @@ $("text").addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter" && !$("speak").disabled) $("speak").click();
 });
 
-setStatus("Loading the model and the phonemizer…");
-worker.postMessage({ type: "load" });
+worker.postMessage({ type: "check" });
 </script>
 </body>
 </html>
