@@ -1,17 +1,20 @@
-// Runs the phonemizer (lug.js, the Luganda spelling rules) and the model (ONNX
-// Runtime Web) off the main thread. Messages in: {type: "load"} and {type: "speak",
-// id, text, voice, speed}. Messages out: status, ready, sentence (with its audio, as
-// soon as it is made), done (with the whole clip), error (plain: true when the message
-// is meant for the reader as it is). Nothing is downloaded before "load".
+// Runs the phonemizer (lug.js, the Luganda spelling rules) and the model off the main
+// thread, either as GGUF in plain JavaScript (tiny-voca.js) or as ONNX (ONNX Runtime
+// Web). Messages in: {type: "load", model: "q4_0" | "q8_0" | "f16" | "f32" | "onnx"}
+// and {type: "speak", id, text, voice, speed}. Messages out: status, ready, sentence
+// (with its audio, as soon as it is made), done (with the whole clip), error (plain:
+// true when the message is meant for the reader as it is). Nothing is downloaded
+// before "load".
 
 const ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
-// The model and its metadata, straight from the Hugging Face repository. To serve
-// your own copies, run `bash web/fetch_assets.sh` and set this to "assets/".
+// The model files, straight from the Hugging Face repository. To serve your own
+// copies, run `bash web/fetch_assets.sh` and set this to "assets/".
 const BASE = "https://huggingface.co/henryhale/tiny-voca-lg/resolve/main/";
+const GGUF = ["q4_0", "q8_0", "f16", "f32"];
 
-importScripts("lug.js");   // ONNX Runtime is fetched in loadModel(), when the reader asks for the model
+importScripts("lug.js");   // the engines are fetched in loadModel(), when the reader asks for a model
 
-let session, config;
+let session = null, voca = null, config;
 
 const status = (text, progress) => postMessage({ type: "status", text, progress });
 
@@ -57,7 +60,27 @@ async function fetchBytes(url, label) {
 // that sentence is skipped.
 const phonemize = (text) => lug.phonemize(text);
 
-async function loadModel() {
+async function loadModel(model) {
+  session = voca = null;
+  if (GGUF.includes(model)) await loadGGUF(model);
+  else await loadONNX();
+}
+
+// GGUF: one file holds the weights and the settings; tiny-voca.js runs it with no runtime.
+async function loadGGUF(type) {
+  const { readGGUF, TinyVoca } = await import("./tiny-voca.js");
+  const bytes = await download(`${BASE}gguf/tiny-voca-lg-${type}.gguf`, "Loading the model");
+  status("Starting the model");
+  const model = new TinyVoca(readGGUF(bytes.buffer));
+  // The ids only mean something to a model trained on the same inventory and front end.
+  if (model.symbols.join("\n") !== lug.SYMBOLS.join("\n")) {
+    throw new Error("this GGUF file was not made for the Luganda front end in lug.js");
+  }
+  config = { sample_rate: model.config.sample_rate, max_tokens: model.config.max_tokens, voices: model.voices };
+  voca = model;
+}
+
+async function loadONNX() {
   if (typeof ort === "undefined") importScripts(ORT + "ort.wasm.min.js");
   config = await (await fetch(BASE + "model.json")).json();
   // The ids only mean something to a model trained on the same inventory and front end.
@@ -112,6 +135,7 @@ function fit(sentence) {
 }
 
 async function synthesize(phones, voice, speed) {
+  if (voca) return voca.synthesize(phones.ids, phones.stress, { voice, speed }).audio;
   const count = phones.ids.length;
   const integers = (values) => new ort.Tensor("int64", BigInt64Array.from(values.map(BigInt)), [1, count]);
   const scalar = (value) => new ort.Tensor("float32", Float32Array.from([value]), [1]);
@@ -172,7 +196,7 @@ async function speak({ id, text, voice, speed }) {
 onmessage = async ({ data }) => {
   try {
     if (data.type === "load") {
-      await loadModel();
+      await loadModel(data.model);
       postMessage({ type: "ready", voices: config.voices, sampleRate: config.sample_rate });
     } else if (data.type === "speak") {
       await speak(data);
