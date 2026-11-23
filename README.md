@@ -98,14 +98,23 @@ One call reads one sentence (up to 512 tokens).
 
 ## Web demo
 
-[`web/`](web/) runs the model in the browser with ONNX Runtime Web and a
-JavaScript copy of the front end ([`lug.js`](web/public/lug.js)).
+[`web/`](web/) runs the model in the browser, with a JavaScript copy of the
+front end ([`lug.js`](web/public/lug.js)). Pick a model file:
+
+- **GGUF** (3.3–18.2 MB): runs in plain JavaScript ([`tiny-voca.js`](web/public/tiny-voca.js)), no runtime.
+- **ONNX** (21 MB): runs in ONNX Runtime Web, faster.
 
 ```bash
 cd web/public && python3 -m http.server 8000
 ```
 
-Pushes to `master` deploy it to GitHub Pages.
+The same GGUF code runs from the command line with Node or Bun:
+
+```bash
+node js/say.mjs "Oli otya? Nkwagala nnyo." --voice F2 --output out.wav
+```
+
+To make the GGUF files: `python scripts/export_gguf.py --checkpoint weights/tiny-voca-lug.pt`.
 
 ## Training
 
@@ -149,6 +158,9 @@ torchrun --standalone --nproc_per_node 2 -m tiny_voca.train \
 # 7. Export
 python scripts/export_checkpoint.py --checkpoint runs/lug/step-00004000.pt --output tiny-voca-lug.pt
 python -m tiny_voca.export --checkpoint tiny-voca-lug.pt --output model.onnx
+
+# 8. GGUF files (f32, f16, q8_0, q4_0)
+python scripts/export_gguf.py --checkpoint tiny-voca-lug.pt --output-dir gguf
 ```
 
 Every step can be restarted; training continues with `--resume runs/lug/last.pt`.
