@@ -52,7 +52,7 @@ delete `stages`, `data`, `features`, `annotations` and `run` in
 | 7 | Phoneme alignment | `tiny_voca.annotate` |
 | 8 | Training, one model on both GPUs | `tiny_voca.train` |
 | 9 | Listen to the last checkpoints | `scripts/export_checkpoint.py` |
-| 10 | Package the chosen checkpoint | `tiny_voca.export` |
+| 10 | Package the chosen checkpoint | `tiny_voca.export`, `scripts/export_gguf.py` |
 
 </details>
 
@@ -77,11 +77,11 @@ ends up in `/kaggle/working/luganda/model/`:
 - `tiny-voca-lug.pt`
 - `model.onnx`
 - `model.json`
-- `README.md`, the model card from `docs/model-card/`
+- `gguf/` with the f32, f16, q8_0 and q4_0 files
 
-The card describes the released run, so edit it if yours differs. The end of
-cell 10 has commented-out lines that upload the folder to Hugging Face with an
-`HF_TOKEN` secret.
+The end of cell 10 has commented-out lines that upload the folder to Hugging
+Face with an `HF_TOKEN` secret. The model card is kept on Hugging Face, and the
+upload leaves it as it is.
 
 To train without Kaggle, follow the command-line steps in the
 [main README](../README.md#training).
