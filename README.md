@@ -11,14 +11,13 @@
 [![Base model](https://img.shields.io/badge/base%20model-n4ze3m%2Ftiny--voca-yellow?logo=huggingface)](https://huggingface.co/n4ze3m/tiny-voca)
 [![Dataset](https://img.shields.io/badge/dataset-waxal--lug--clean-orange?logo=huggingface)](https://huggingface.co/datasets/CraneAILabs/waxal-lug-clean)
 
-
 A small Luganda text-to-speech model: [tiny-voca](https://github.com/n4ze3m/tiny-voca)
 (4.5M parameters) fine-tuned on recorded Luganda speech. Two voices, F2 and M2,
 24 kHz. Runs on a CPU or in the browser.
 
 **[Try the demo](https://henryhale.github.io/tiny-voca-lg/)** 🚀
 
-<img width="2008" height="1223" alt="image" src="https://github.com/user-attachments/assets/fcb76197-da61-444f-a5d3-4f5a22b6ff49" />
+[![](./screenshot.png)](https://henryhale.github.io/tiny-voca-lg/)
 
 </div>
 
