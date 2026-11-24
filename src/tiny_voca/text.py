@@ -282,9 +282,10 @@ def phonemize(text):
     if _frontend == "own":
         return tokenize(_dizione().pieces(text))
     if _frontend == "lug":
-        from . import lug
+        from . import lug, lug_text
+        # Numbers and the like are written out in words first; lug_text is not in the fingerprint.
         return tokenize([(True, piece) if punctuation else (False, lug.words(piece))
-                         for punctuation, piece in chunks(normalize_text(text))])
+                         for punctuation, piece in chunks(lug_text.expand(normalize_text(text)))])
     pieces = []
     for punctuation, piece in chunks(normalize_text(text)):
         pieces.append((True, piece) if punctuation else (False, espeak_words(piece)))

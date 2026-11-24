@@ -1,8 +1,8 @@
 // The Luganda front end in plain JavaScript: text -> tiny-voca phoneme ids.
 //
 // A copy of the Python path `tiny_voca.text.phonemize` with the "lug" front end:
-// `normalize_text` and `chunks` from text.py, the spelling rules of lug.py and
-// `tokenize`. The model only understands the ids that Python would give, so the
+// `normalize_text` and `chunks` from text.py, `expand` from lug_text.py (numbers
+// and the like in words), the spelling rules of lug.py and `tokenize`. The model only understands the ids that Python would give, so the
 // two must stay alike; tests/test_lug.py compares them sentence by sentence.
 //
 // Loaded with importScripts() in the worker, or with require() in node (tests).
@@ -115,10 +115,129 @@ const lug = (() => {
     return (clean(piece).match(/[a-zŋ']+/g) || []).map(wordPhones).filter((phones) => phones.length);
   }
 
+  // lug_text.py: numbers, money, times, titles, loanwords and initialisms written out in Luganda words before
+  // the rules read them. Not part of the checkpoint's fingerprint. Keep the tables and steps as in Python.
+  const UNITS = ["", "emu", "bbiri", "ssatu", "nnya", "ttaano", "mukaaga", "musanvu", "munaana", "mwenda"];
+  const TENS = ["", "kkumi", "amakumi abiri", "amakumi asatu", "amakumi ana", "amakumi ataano",
+                "nkaaga", "nsanvu", "kinaana", "kyenda"];
+  const HUNDREDS = ["", "kikumi", "bibiri", "bisatu", "bina", "bitaano", "lukaaga", "lusanvu", "lunaana", "lwenda"];
+  const THOUSANDS = ["", "lukumi", "enkumi bbiri", "enkumi ssatu", "enkumi nnya", "enkumi ttaano",
+                     "kakaaga", "kasanvu", "kanaana", "kenda"];
+  const DIGITS = ["zeero", ...UNITS.slice(1)];
+  const CLASS_4 = ["", "gumu", "ebiri", "esatu", "ena", "etaano"];
+  const CLASS_14 = ["", "bumu", "bubiri", "busatu", "buna", "butaano"];
+  const JOIN = " mu ";
+  const POINT = "pointi";
+  const LARGEST = 10 ** 12;
+  const TITLES = { dr: "dokita", prof: "pulofeesa", owek: "owekitiibwa" };
+  const RESPELLINGS = {
+    ok: "okee", okay: "okee", dr: "dokita", doctor: "dokita", prof: "pulofeesa",
+    professor: "pulofeesa", owek: "owekitiibwa", president: "pulezidenti", minister: "minisita",
+    police: "poliisi", school: "sukulu", bus: "bbaasi", taxi: "takisi", phone: "fooni",
+    computer: "kompyuta", internet: "yintaneti", email: "imeeri", radio: "leediyo",
+    tv: "ttivvi", television: "ttivvi", covid: "kovidi", whatsapp: "wasaapu",
+    facebook: "feesibuuku", youtube: "yuutuubu",
+  };
+  const LETTER_NAMES = {
+    a: "ee", b: "bbi", c: "ssi", d: "ddi", e: "ii", f: "efu", g: "jji", h: "eeci", i: "aayi",
+    j: "jjee", k: "kke", l: "eru", m: "emu", n: "enu", o: "oo", p: "pi", q: "kyu", r: "aa",
+    s: "esi", t: "tti", u: "yu", v: "vi", w: "dabuliyu", x: "eksi", y: "wayi", z: "zeddi",
+  };
+  const NUMBER = "[0-9]{1,3}(?:,[0-9]{3})+(?:\\.[0-9]+)?|[0-9]+(?:\\.[0-9]+)?";
+  const TITLE = /\b(dr|prof|owek)\./gi;
+  const TIME = /\b(?:e?ssaawa\s+)?([0-9]{1,2}):([0-9]{2})\b/gi;
+  const MONEY_BEFORE = new RegExp("\\b(?:ugx|ushs?|shs?)\\.?\\s?(" + NUMBER + ")(?:\\s?/[=-])?", "gi");
+  const MONEY_AFTER = new RegExp("(" + NUMBER + ")\\s?(?:/[=-]|(?:ugx|shs?)\\b)", "gi");
+  const DOLLARS = new RegExp("\\$\\s?(" + NUMBER + ")", "g");
+  const PERCENT = new RegExp("(" + NUMBER + ")\\s?%", "g");
+  const PHONE = /(?:\+|(?<![0-9A-Za-z.,])0(?=[0-9]))[0-9]+(?:[ -][0-9]+)*/g;
+  const PLAIN = new RegExp(NUMBER, "g");
+  const WORD = /(?<![A-Za-z0-9'À-ɏ])[A-Za-z]+(?![A-Za-z0-9'À-ɏ])/g;
+
+  const digits = (text) => Array.from(text).filter((c) => "0123456789".includes(c)).map((c) => DIGITS[+c]).join(" ");
+  const unit = (n, forms) => (n < forms.length ? forms[n] : UNITS[n]);
+
+  function belowHundred(n, forms) {
+    const tens = Math.floor(n / 10), one = n % 10;
+    if (!tens) return unit(one, forms);
+    if (!one) return TENS[tens];
+    const word = unit(one, forms);
+    if (tens === 1) return "kkumi " + ("aeiou".includes(word[0]) ? "n'" + word : "na " + word);
+    return TENS[tens] + JOIN + word;
+  }
+
+  function belowThousand(n, forms = UNITS) {
+    const hundreds = Math.floor(n / 100), rest = n % 100;
+    const parts = hundreds ? [HUNDREDS[hundreds]] : [];
+    if (rest) parts.push(belowHundred(rest, forms));
+    return parts.join(JOIN);
+  }
+
+  function thousands(n) {
+    if (n < 10) return THOUSANDS[n];
+    const tens = Math.floor(n / 10), rest = n % 10;
+    const word = tens === 1 ? "omutwalo" : "emitwalo " + belowThousand(tens, CLASS_4);
+    return word + (rest ? JOIN + THOUSANDS[rest] : "");
+  }
+
+  const scale = (n, one, many) => (n === 1 ? one : many + " " + belowThousand(n, CLASS_14));
+
+  function number(n) {
+    if (n === 0) return DIGITS[0];
+    if (n >= LARGEST) return digits(String(n));
+    const parts = [];
+    for (const [size, say] of [[10 ** 9, (k) => scale(k, "akawumbi", "obuwumbi")],
+                               [10 ** 6, (k) => scale(k, "akakadde", "obukadde")],
+                               [10 ** 3, thousands]]) {
+      const count = Math.floor(n / size);
+      n %= size;
+      if (count) parts.push(say(count));
+    }
+    if (n) parts.push(belowThousand(n));
+    return parts.join(JOIN);
+  }
+
+  function amount(text) {
+    const [whole, ...rest] = text.replaceAll(",", "").split(".");
+    const fraction = rest.join(".");
+    // More than 12 digits: digit by digit, as number() does from LARGEST on (and +whole would lose digits).
+    const said = (whole.length > 1 && whole[0] === "0") || whole.length > 12 ? digits(whole) : number(+whole);
+    return said + (fraction ? ` ${POINT} ` + digits(fraction) : "");
+  }
+
+  function clock(hour, minute, saidInLuganda) {
+    if (!saidInLuganda) hour += 6;
+    const words = "essaawa " + number(hour % 12 || 12);
+    if (minute === 30) return words + " n'ekitundu";
+    return words + (minute ? " n'eddakiika " + number(minute) : "");
+  }
+
+  function expand(text) {
+    const shouting = !/[a-z]/.test(text);
+    text = text.replace(TITLE, (_, title) => TITLES[title.toLowerCase()]);
+    text = text.replace(TIME, (all, hour, minute) => (+hour > 23 || +minute > 59 ? all
+                                                      : clock(+hour, +minute, !"0123456789".includes(all[0]))));
+    text = text.replace(MONEY_BEFORE, (_, value) => "siringi " + amount(value));
+    text = text.replace(MONEY_AFTER, (_, value) => "siringi " + amount(value));
+    text = text.replace(DOLLARS, (_, value) => "doola " + amount(value));
+    text = text.replace(PERCENT, (_, value) => "ebitundu " + amount(value) + " ku kikumi");
+    text = text.replace(PHONE, (all) => digits(all));
+    text = text.replace(PLAIN, (all) => amount(all));
+    text = text.replaceAll("&", " ne ");
+    text = text.replace(WORD, (word) => {
+      const key = word.toLowerCase();
+      if (Object.hasOwn(RESPELLINGS, key)) return RESPELLINGS[key];
+      if (!shouting && word.length >= 2 && word.length <= 5 && /^[A-Z]+$/.test(word))
+        return Array.from(key, (letter) => LETTER_NAMES[letter]).join(" ");
+      return word;
+    });
+    return text.replace(/ {2,}/g, " ").trim();
+  }
+
   // text.tokenize, for words that carry no stress. null when there is nothing to pronounce.
   function phonemize(text) {
     const symbols = [BOS];
-    for (const [punctuation, piece] of chunks(normalizeText(text))) {
+    for (const [punctuation, piece] of chunks(expand(normalizeText(text)))) {
       if (punctuation) {
         if (symbols[symbols.length - 1] !== piece) symbols.push(piece); // collapse repeats such as "!!"
         continue;
@@ -134,7 +253,7 @@ const lug = (() => {
     return { ids: symbols.map((symbol) => ID.get(symbol)), stress: symbols.map(() => 0), text: symbols.join(" ") };
   }
 
-  return { SYMBOLS, normalizeText, chunks, clean, wordPhones, words, phonemize };
+  return { SYMBOLS, normalizeText, chunks, clean, wordPhones, words, number, expand, phonemize };
 })();
 
 if (typeof module !== "undefined") module.exports = lug;
