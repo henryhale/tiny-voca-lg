@@ -124,7 +124,7 @@
     <a href="https://huggingface.co/datasets/CraneAILabs/waxal-lug-clean">Dataset</a>
     <a href="https://github.com/n4ze3m/tiny-voca">tiny-voca (English)</a>
     <p>Nothing is downloaded until you press Load. Pronunciation comes from Luganda spelling rules; tone is
-       not written and not modelled. Digits are not read: write numbers out in words.</p>
+       not written and not modelled. Numbers, money and times are read in Luganda words.</p>
   </footer>
 </main>
 
@@ -135,6 +135,8 @@ const EXAMPLES = [
   ["Apostrophes", "Ng'ombe za kitaawe n'abaana bajja."],
   ["Sentence", "Abaana bagenda ku ssomero buli lunaku, naye leero baasigadde waka."],
   ["Long vowels", "Obummonde obuzungu buwooma nnyo naye bulumya enjala, olya n'obeera ng’atalidde."],
+  ["Numbers", "Mu 2026, yasasula Shs 5,000 ku ssaawa 10:30, ebitundu 50% ku buli kimu."],
+  ["Abbreviations", "Dr. Kato ne Owek. Mayiga baayogedde ku NRM ne KCCA. Ok!"],
 ];
 const $ = (id) => document.getElementById(id);
 const worker = new Worker("worker.js");
