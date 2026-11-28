@@ -164,7 +164,7 @@ def convert(checkpoint, output_dir, name, types):
         ("general.architecture", STRING, "tiny-voca"),
         ("general.name", STRING, name),
         ("general.alignment", UINT64, ALIGNMENT),
-        ("general.license", STRING, "apache-2.0"),
+        ("general.license", STRING, "cc-by-sa-4.0"),   # the weights; the code is Apache-2.0
         ("tiny_voca.sample_rate", UINT64, config["sample_rate"]),
         ("tiny_voca.hop", UINT64, config["hop"]),
         ("tiny_voca.voices", ARRAY, config["speakers"], STRING),
