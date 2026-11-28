@@ -6,7 +6,8 @@
 [![Parameters: 4.5M](https://img.shields.io/badge/parameters-4.5M-lightgrey)](https://huggingface.co/henryhale/tiny-voca-lg)
 [![ONNX](https://img.shields.io/badge/ONNX-opset%2017-005CED?logo=onnx)](#onnx)
 
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Code: Apache-2.0](https://img.shields.io/badge/code-Apache--2.0-blue)](LICENSE)
+[![Weights: CC BY-SA 4.0](https://img.shields.io/badge/weights-CC%20BY--SA%204.0-blue)](#licences)
 [![Weights](https://img.shields.io/badge/weights-Hugging%20Face-yellow?logo=huggingface)](https://huggingface.co/henryhale/tiny-voca-lg)
 [![Base model](https://img.shields.io/badge/base%20model-n4ze3m%2Ftiny--voca-yellow?logo=huggingface)](https://huggingface.co/n4ze3m/tiny-voca)
 [![Dataset](https://img.shields.io/badge/dataset-waxal--lug--clean-orange?logo=huggingface)](https://huggingface.co/datasets/CraneAILabs/waxal-lug-clean)
@@ -206,12 +207,40 @@ PYTHONPATH=src:tests python -m unittest discover -s tests
 
 For the limits of the released model, see the [model card](https://huggingface.co/henryhale/tiny-voca-lg).
 
+## Licences
+
+| What | Licence |
+|---|---|
+| Code in this repository, including the Luganda front end (`lug.py`, `lug.js`) | [Apache-2.0](LICENSE) |
+| Released weights: checkpoint, `model.onnx`, `model.json`, GGUF files | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| Training recordings (not distributed here) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+
+The voices were learned from the Luganda TTS recordings of
+[WaxalNLP](https://huggingface.co/datasets/google/WaxalNLP), which lists them
+under CC BY-SA 4.0. Training used the cleaned copy
+[CraneAILabs/waxal-lug-clean](https://huggingface.co/datasets/CraneAILabs/waxal-lug-clean):
+the same recordings, so the same licence, although its card says CC BY 4.0.
+The weights are therefore released under CC BY-SA 4.0 too. They are fine-tuned
+from [n4ze3m/tiny-voca](https://huggingface.co/n4ze3m/tiny-voca) (Apache-2.0),
+whose notice is kept.
+
+To redistribute the weights, include the CC BY-SA 4.0 licence, keep any
+changed weights under the same licence, and give this attribution:
+
+> tiny-voca-lg by Henry Hale, fine-tuned from tiny-voca by Muhammed Nazeem
+> (Apache-2.0), on Luganda recordings from WaxalNLP (Makerere University,
+> Loud and Clear; CC BY-SA 4.0).
+
+The two voices are those of two recorded WaxalNLP speakers. Do not use them to
+impersonate those speakers.
+
 ## Credits
 
 - [tiny-voca](https://github.com/n4ze3m/tiny-voca) by Muhammed Nazeem: model, code and English weights (Apache-2.0).
-- [CraneAILabs/waxal-lug-clean](https://huggingface.co/datasets/CraneAILabs/waxal-lug-clean) from WaxalNLP: recordings (CC BY 4.0).
+- [WaxalNLP](https://huggingface.co/datasets/google/WaxalNLP): Luganda recordings by Makerere University and Loud and Clear, funded by Google and the Gates Foundation (CC BY-SA 4.0).
+- [CraneAILabs/waxal-lug-clean](https://huggingface.co/datasets/CraneAILabs/waxal-lug-clean): the cleaned copy used for training.
 
-Code is Apache-2.0. If you use this, please cite upstream tiny-voca:
+If you use this, please cite upstream tiny-voca:
 
 ```bibtex
 @software{nazeem2026tinyvoca,
