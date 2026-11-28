@@ -8,7 +8,8 @@ Luganda spelling is close to phonemic, so plain rules are enough:
 
 Every output phone is already in the English inventory, so the English weights
 and the phoneme aligner can be reused unchanged. Tone is not written in Luganda
-spelling and is not modelled. Digits are not read: spell numbers out first.
+spelling and is not modelled. Digits are skipped here: ``lug_text.expand``
+writes numbers, money, times and the like out in words before these rules run.
 
 The tables below are part of the checkpoint's front-end fingerprint
 (``identity``): changing any of them, or VERSION, means the released

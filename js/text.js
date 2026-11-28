@@ -2,7 +2,7 @@
 // (web/public/lug.js), and writes the WAV. The page and say.mjs share it.
 // Sentence rules as in web/public/worker.js and tiny_voca.infer; keep them alike.
 
-const ABBREVIATIONS = /(?:\b(?:mr|mrs|ms|dr|prof|sr|jr|st|vs|etc|no|inc|ltd|co|e\.g|i\.e|a\.m|p\.m)|\b[A-Z])\.$/i;
+const ABBREVIATIONS = /(?:\b(?:mr|mrs|ms|dr|prof|ugx|shs|sr|jr|st|vs|etc|no|inc|ltd|co|e\.g|i\.e|a\.m|p\.m)|\b[A-Z])\.$/i;
 
 function sentences(text) {
   const parts = [];

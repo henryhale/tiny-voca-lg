@@ -94,7 +94,7 @@ async function loadONNX() {
   session = await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
 }
 
-const ABBREVIATIONS = /(?:\b(?:mr|mrs|ms|dr|prof|sr|jr|st|vs|etc|no|inc|ltd|co|e\.g|i\.e|a\.m|p\.m)|\b[A-Z])\.$/i;
+const ABBREVIATIONS = /(?:\b(?:mr|mrs|ms|dr|prof|ugx|shs|sr|jr|st|vs|etc|no|inc|ltd|co|e\.g|i\.e|a\.m|p\.m)|\b[A-Z])\.$/i;
 
 // Sentences, without breaking after titles, initials or inside numbers.
 // tiny_voca.infer.sentences in the Python package splits the same way; keep the two alike.

@@ -13,7 +13,7 @@ PEAK = 0.99
 CANNOT_READ = "tiny-voca-lg only reads Luganda written in Latin letters"
 _SPACE = re.compile("[\\s" + chr(0xFEFF) + "]+")    # JavaScript's \s, which the demo uses, takes U+FEFF too
 _SENTENCE_END = re.compile(r"""(?:(?<=[.!?…])|(?<=[.!?…]["')\]]))\s+(?=["'(\[]?[A-Z0-9])""")
-_NOT_AN_END = re.compile(r"(?:\b(?:mr|mrs|ms|dr|prof|sr|jr|st|vs|etc|no|inc|ltd|co|e\.g|i\.e|a\.m|p\.m)|\b[A-Z])\.$",
+_NOT_AN_END = re.compile(r"(?:\b(?:mr|mrs|ms|dr|prof|ugx|shs|sr|jr|st|vs|etc|no|inc|ltd|co|e\.g|i\.e|a\.m|p\.m)|\b[A-Z])\.$",
                          re.IGNORECASE | re.ASCII)
 _CLAUSE_END = re.compile(r"(?<=[,;:—])\s+")
 _TEXT_END = re.compile("[\\s" + chr(0xFEFF) + "]+$")

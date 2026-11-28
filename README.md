@@ -63,8 +63,30 @@ No dictionary or phonemizer is needed.
 | ny, ng' | n j, ŋ | *ng'ombe* → ŋ ɔ m b ɛ |
 | ky, gy, r | tʃ, dʒ, ɾ | |
 
-Tone is not modelled, and digits are not read: write numbers in words.
-The rules are part of the checkpoint, so changing them means retraining.
+Tone is not modelled. The rules are part of the checkpoint, so changing them
+means retraining.
+
+Before the rules run, [`lug_text.py`](src/tiny_voca/lug_text.py) writes out in
+Luganda words what the rules cannot read. It is not part of the checkpoint, so
+it can change without retraining:
+
+| Written | Read as |
+|---|---|
+| 2026 | enkumi bbiri mu amakumi abiri mu mukaaga |
+| 3.5 | ssatu pointi ttaano |
+| Shs 5,000, 5,000/=, UGX 5,000 | siringi enkumi ttaano |
+| $20 | doola amakumi abiri |
+| 50% | ebitundu amakumi ataano ku kikumi |
+| 10:30 | essaawa nnya n'ekitundu (Luganda time, six hours on) |
+| essaawa 2:15 | essaawa bbiri n'eddakiika kkumi na ttaano (already Luganda time) |
+| 0772 123456, +256 ... | digit by digit |
+| Dr., Prof., Owek. | dokita, pulofeesa, owekitiibwa |
+| NRM, KCCA | enu aa emu, kke ssi ssi ee (2-5 capitals, unless all the text is in capitals) |
+| OK, TV, WhatsApp, ... | okee, ttivvi, wasaapu (a short list of loanwords: `RESPELLINGS`) |
+
+Numbers are in the counting form, which agrees with nouns like *ente* and
+*essaawa*; with other nouns it does not agree (*abantu 3* is read *abantu
+ssatu*, not *abantu basatu*).
 
 ## ONNX
 
@@ -176,8 +198,9 @@ PYTHONPATH=src:tests python -m unittest discover -s tests
 
 - The front end reads Latin letters only; other scripts are skipped.
 - Tone is not written in Luganda spelling, so the rules cannot mark it.
-- Digits are not read: write numbers out in words.
-- Loanwords and names are read with the same Luganda rules.
+- Numbers are read in the counting form, without agreeing with the noun; ordinals (1st, 2nd) are not handled.
+- Loanwords and names are read with the same Luganda rules, apart from the short list in `lug_text.py`.
+- An initialism is spelled out only when it is 2-5 capital letters and the text is not all in capitals.
 - The rule tables are part of the checkpoint: changing them means retraining.
 - One model call reads one sentence (up to 512 tokens); `speak_text` splits longer text.
 
